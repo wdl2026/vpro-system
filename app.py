@@ -1,51 +1,51 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 
-st.set_page_config(page_title="V-PRO ERP ULTIMATE", layout="wide")
+# 1. 战区级 UI 布局
+st.set_page_config(page_title="V-PRO INTELLIGENCE HUB", layout="wide")
+st.markdown("<style>.main { background-color: #05070a; color: #00ff41; }</style>", unsafe_allow_html=True)
 
-st.markdown("""
-    <style>
-    .main { background-color: #0b0e14; color: #e0e0e0; }
-    .stMetric { background-color: #161b22; border-radius: 10px; padding: 15px; border: 1px solid #30363d; }
-    </style>
-    """, unsafe_allow_html=True)
+st.title("📡 V-PRO: 全球选品情报与决策中心")
 
+# 2. 情报抓取模块 (这就是你要的“入口”)
 with st.sidebar:
-    st.title("🎛️ 运营决策中心")
-    platform = st.selectbox("核心渠道", ["TikTok Shop", "Amazon FBA", "Temu", "Shopify"])
-    st.divider()
-    u_cost = st.number_input("采购成本 ($)", value=12.5)
-    ship = st.number_input("物流费用 ($)", value=8.0)
-    price = st.number_input("拟售价格 ($)", value=45.0)
-    cac = st.number_input("广告成本 (CAC)", value=15.0)
-    st.divider()
-    stock = st.number_input("当前库存", value=500)
-    d_sales = st.number_input("日均销量", value=20)
-    lead_time = st.slider("补货周期 (天)", 7, 60, 25)
+    st.header("🔍 实时情报入口")
+    keyword = st.text_input("输入调研关键词", value="Home Decor")
+    
+    st.write("---")
+    st.write("👉 [TikTok 官方爆量素材库](https://ads.tiktok.com/business/creativecenter/inspiration/popular/pc/en)")
+    st.write("👉 [Amazon 市场热度透视](https://www.amazon.com/s?k=" + keyword + ")")
+    st.write("👉 [Google Trends 趋势监控](https://trends.google.com/trends/explore?q=" + keyword + ")")
 
-fees = {"TikTok Shop": 0.08, "Amazon FBA": 0.15, "Temu": 0.05, "Shopify": 0.03}
-f_amt = price * fees[platform]
-net = price - u_cost - ship - cac - f_amt
-roi = net / (u_cost + ship + cac) if (u_cost + ship + cac) > 0 else 0
-days = stock / d_sales if d_sales > 0 else 999
-reorder = "🚨 立即补货" if days <= lead_time else "✅ 库存充足"
+# 3. 核心决策矩阵 (把搜到的数据变现)
+st.subheader("⚔️ 情报压测与胜率判定")
+c1, c2 = st.columns([1, 2])
 
-st.title(f"📊 V-PRO ERP | {platform} 实战看板")
-c1, c2, c3, c4 = st.columns(4)
-c1.metric("单均净利", f"${net:.2f}")
-c2.metric("ROI", f"{roi:.1%}")
-c3.metric("库存支撑", f"{days:.1f} 天")
-c4.metric("补货决策", reorder)
+with c1:
+    st.info("从情报工具中抓取数据填入")
+    p_price = st.number_input("拟售价格 ($)", 29.9)
+    p_cost = st.number_input("进货+运费 ($)", 12.0)
+    p_cac = st.slider("预估获客成本 (CAC)", 5.0, 30.0, 15.0)
 
+with c2:
+    # 工业级费率计算 (含平台佣金/损耗)
+    margin = p_price - p_cost - p_cac - (p_price * 0.15) 
+    roi = (margin / (p_cost + p_cac)) * 100 if (p_cost + p_cac) > 0 else 0
+    
+    st.subheader("📊 实时战损评估")
+    col_a, col_b = st.columns(2)
+    col_a.metric("单均利润", f"${margin:.2f}")
+    col_b.metric("ROI 预判", f"{roi:.1%}")
+    
+    if roi > 40: st.success("✅ **SS级机会**：情报显示该品类利润厚，建议立刻从 PiPiADS 扒素材开测！")
+    elif roi > 0: st.warning("⚠️ **B级博弈**：利润微薄，除非你有独家素材，否则容易给平台打工。")
+    else: st.error("🚨 **自杀指令**：模型显示亏损，情报中看到的单量全是虚的，别进！")
+
+# 4. 竞品对比实验室
 st.divider()
-col_l, col_r = st.columns([2, 1])
-with col_l:
-    st.subheader("📈 成本结构拆解")
-    df = pd.DataFrame({"项": ["成本", "物流", "佣金", "广告", "利润"], "值": [u_cost, ship, f_amt, cac, max(0, net)]})
-    st.plotly_chart(px.bar(df, x="项", y="值", color="项", text_auto=True), use_container_width=True)
-with col_r:
-    st.subheader("⚖️ 盈亏平衡点")
-    be = u_cost + ship + cac + f_amt
-    st.write(f"保本价: **${be:.2f}**")
-    st.progress(min(max(price/(be*1.5), 0.0), 1.0), text="价格健康度")
+st.subheader("📈 市场竞品胜率排位")
+battle_data = pd.DataFrame([
+    {"品类": "方案 A (高价品牌)", "售价": 49.9, "胜率": 85},
+    {"品类": "方案 B (低价跑量)", "售价": 19.9, "胜率": 22},
+])
+st.bar_chart(battle_data, x="品类", y="胜率")
