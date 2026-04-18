@@ -1,81 +1,57 @@
+
 import streamlit as st
 import pandas as pd
-import numpy as np
 import plotly.express as px
-import time
 
-# =========================================================
-# 🏗️ V-ULTIMATE ELITE 核心逻辑 (最高等级版)
-# =========================================================
-st.set_page_config(page_title="V-ULTIMATE ELITE AI", layout="wide", page_icon="🛡️")
+# 1. 核心工业配置
+st.set_page_config(page_title="V-PRO ERP ULTIMATE", layout="wide")
 
-# 1. 终极 Sigmoid 胜率模型 (数学核心)
-def calculate_elite_score(momentum, profit_val, competition):
-    # 维度归一化：将利润和动能压缩到同一个权重空间
-    norm_m = np.clip(momentum * 2.5, -2, 2)
-    norm_p = np.clip(profit_val / 45.0, -2, 5) 
-    norm_c = np.clip((1 / (competition + 1)) * 12.0, 0, 2)
-    
-    # 核心权重分配：趋势(45%) + 利润(35%) + 竞争(20%)
-    raw_score = (norm_m * 0.45) + (norm_p * 0.35) + (norm_c * 0.20)
-    prob = 1 / (1 + np.exp(-raw_score)) # Sigmoid 概率映射
-    return prob
+# 2. 注入专业视觉样式
+st.markdown("""
+    <style>
+    .main { background-color: #0b0e14; color: #e0e0e0; }
+    .stMetric { background-color: #161b22; border-radius: 10px; padding: 15px; border: 1px solid #30363d; }
+    </style>
+    """, unsafe_allow_html=True)
 
-# 📱 手机端 UI 适配
-st.title("🛡️ V-ULTIMATE ELITE")
-st.markdown("---")
-
-# 侧边栏：战略控制中心
+# 3. 侧边栏控制
 with st.sidebar:
-    st.header("🎯 战略决策配置")
-    acos_rate = st.slider("预期广告 ACOS (%)", 5, 45, 20) / 100
-    threshold = st.slider("SCALE 准入阈值", 0.5, 0.9, 0.7)
-    
-    st.header("📋 批量测品清单")
-    input_text = st.text_area("输入关键词", "orthopedic dog bed\nautomatic cat feeder\nsmart pet collar")
-    keywords = [k.strip() for k in input_text.split('\n') if k.strip()]
+    st.title("🎛️ 运营决策中心")
+    platform = st.selectbox("核心渠道", ["TikTok Shop", "Amazon FBA", "Temu", "Shopify"])
+    st.divider()
+    u_cost = st.number_input("采购成本 ($)", value=12.5)
+    ship = st.number_input("物流费用 ($)", value=8.0)
+    price = st.number_input("拟售价格 ($)", value=45.0)
+    cac = st.number_input("广告成本 (CAC)", value=15.0)
+    st.divider()
+    stock = st.number_input("当前库存", value=500)
+    d_sales = st.number_input("日均销量", value=20)
+    lead_time = st.slider("补货周期 (天)", 7, 60, 25)
 
-# 主程序：深度扫描
-if st.button("🚀 启动全市场深度扫描", use_container_width=True):
-    results = []
-    my_bar = st.progress(0)
-    
-    for idx, kw in enumerate(keywords):
-        # 这里模拟实时抓取的数据流（实际部署后对接 API）
-        price = np.random.uniform(30, 150)
-        comp = np.random.randint(10, 60)
-        momentum = np.random.uniform(-0.1, 0.4)
-        
-        # 高级利润模型
-        ship_fee = 12 if price < 50 else 22
-        net_profit = price * (1 - 0.3 - 0.15 - acos_rate) - ship_fee
-        
-        # 计算胜率
-        prob = calculate_elite_score(momentum, net_profit, comp)
-        
-        # 决策判断
-        if prob >= threshold: decision = "🚀 SCALE"
-        elif prob > 0.5: decision = "🟡 TEST"
-        else: decision = "❌ DROP"
-        
-        results.append({
-            "产品": kw,
-            "均价": round(price, 2),
-            "预估净利": round(net_profit, 2),
-            "胜率": round(prob, 2),
-            "最终决策": decision
-        })
-        my_bar.progress((idx + 1) / len(keywords))
-        time.sleep(0.1)
+# 4. 逻辑计算
+fees = {"TikTok Shop": 0.08, "Amazon FBA": 0.15, "Temu": 0.05, "Shopify": 0.03}
+f_amt = price * fees[platform]
+net = price - u_cost - ship - cac - f_amt
+roi = net / (u_cost + ship + cac) if (u_cost + ship + cac) > 0 else 0
+days = stock / d_sales if d_sales > 0 else 999
+reorder = "🚨 立即补货" if days <= lead_time else "✅ 库存充足"
 
-    df = pd.DataFrame(results).sort_values("胜率", ascending=False)
+# 5. 主看板
+st.title(f"📊 V-PRO ERP | {platform} 看板")
+c1, c2, c3, c4 = st.columns(4)
+c1.metric("单均净利", f"${net:.2f}")
+c2.metric("ROI", f"{roi:.1%}")
+c3.metric("库存支撑", f"{days:.1f} 天")
+c4.metric("补货决策", reorder)
 
-    # --- 手机可视化看板 ---
-    st.subheader("🏆 重点执行建议")
-    for _, row in df.head(3).iterrows():
-        with st.expander(f"{row['最终决策']} - {row['产品']}", expanded=True):
-            st.write(f"**胜率:** {int(row['胜率']*100)}% | **净利:** ${row['预估净利']}")
-            st.progress(row['胜率'])
-
-    st.subheader("📑 数据明细")
-    st.dataframe(df, use_container_width=True, hide_index=True)
+st.divider()
+col_l, col_r = st.columns([2, 1])
+with col_l:
+    st.subheader("📈 成本结构拆解")
+    df = pd.DataFrame({"项": ["成本", "物流", "佣金", "广告", "利润"], "值": [u_cost, ship, f_amt, cac, max(0, net)]})
+    st.plotly_chart(px.bar(df, x="项", y="值", color="项", text_auto=True), use_container_width=True)
+with col_r:
+    st.subheader("⚖️ 盈亏平衡点分析")
+    be = u_cost + ship + cac + f_amt
+    st.write(f"保本价: **${be:.2f}**")
+    st.progress(min(max(price/(be*1.5), 0.0), 1.0), text="价格健康度")
